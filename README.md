@@ -2,7 +2,7 @@
 
 # iron_response
 
-Provides a response object for IronWorkers.
+Glues together IronWorker and AWS S3 to provide a response object to remote worker scripts. This allows you to write massively concurrent Ruby programs without worrying about threads.
 
 ```ruby
 require "iron_response"
