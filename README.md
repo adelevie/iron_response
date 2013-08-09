@@ -8,13 +8,22 @@ require "iron_response"
 
 client = IronWorkerNG::Client.new
 params = {
-  aws_s3: {access_key_id: 123, secret_access_key: 456}
+  
 }
 
-results = [1..1000].map do |i|
-  params[:number] = i
-  IronResponse.queue("is_prime", params, client)
-end
+batch = IronResponse::Batch.new
+batch.config[:aws_s3] = {
+  access_key_id: 123, 
+  secret_access_key: 456, 
+  bucket: "iron_worker"
+}
+batch.config[:iron_io] = {
+  project_id: "abc", 
+  token: "defg"
+}
+batch.worker       = "path/to/worker/is_prime"
+batch.params_array = [1..1000].map {|i| {number: i}}
+results            = batch.run!
 
 p results
 #=> [true, true, true, false, true, false...]
