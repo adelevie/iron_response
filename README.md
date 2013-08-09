@@ -1,3 +1,5 @@
+[![Code Climate](https://codeclimate.com/github/adelevie/iron_response.png)](https://codeclimate.com/github/adelevie/iron_response) [![Gem Version](https://badge.fury.io/rb/iron_response.png)](http://badge.fury.io/rb/iron_response)
+
 # iron_response
 
 Provides a response object for IronWorkers.
