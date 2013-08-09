@@ -4,8 +4,8 @@ require File.expand_path('../lib/iron_response/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Alan deLevie"]
   gem.email         = ["adelevie@gmail.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
+  gem.description   = %q{Provides a response object for IronWorker tasks.}
+  gem.summary       = %q{Provides a response object for IronWorker tasks.}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($\)
