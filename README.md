@@ -3,13 +3,7 @@
 Provides a response object for IronWorkers.
 
 ```ruby
-require "iron_worker_ng"
 require "iron_response"
-
-client = IronWorkerNG::Client.new
-params = {
-  
-}
 
 batch = IronResponse::Batch.new
 batch.config[:aws_s3] = {
@@ -39,7 +33,7 @@ IronResponse::Responder do
   end
 
 
-  is_prime? params["number"]
+  is_prime? params[:number]
 end
 ```
 
