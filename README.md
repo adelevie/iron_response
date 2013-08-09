@@ -79,7 +79,7 @@ IronResponse::Responder.new(binding) do
 end
 ```
 
-To run this worker, create at the top-level of `foo` fileds called `configuration.rb` and `enqueue.rb`:
+To run this worker, create at the top-level of `foo` files called `configuration.rb` and `enqueue.rb`:
 
 `configuration.rb`:
 ```ruby
