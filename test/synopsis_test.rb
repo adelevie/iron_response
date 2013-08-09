@@ -10,11 +10,11 @@ class SynopsisTest < MiniTest::Unit::TestCase
     batch.config[:iron_io]   = config[:iron_io]
     batch.config[:aws_s3]    = config[:aws_s3]
     batch.worker             = "test/workers/is_prime.rb"
-    batch.params_array       = [1,2,3].map {|i| {number: i}}#Array(1).map {|i| {number: i}}
+    batch.params_array       = Array(1..20).map {|i| {number: i}}
     
     results                  = batch.run!
 
-    p results
     assert_equal Array, results.class
+    assert_equal batch.params_array.length, results.length
   end
 end

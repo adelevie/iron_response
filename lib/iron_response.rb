@@ -5,7 +5,7 @@ require "json"
 
 module IronResponse
   module Protocol
-    S3_PATH = "tasks/"
+    S3_PATH = "tasks"
 
     def Protocol.s3_path(task_id)
       "#{S3_PATH}/#{task_id}.json"
@@ -23,8 +23,8 @@ module IronResponse
       aws_s3 = params[:aws_s3]
       AWS::S3::Base.establish_connection! access_key_id:     aws_s3[:access_key_id],
                                           secret_access_key: aws_s3[:secret_access_key]
-      path = "tasks/#{task_id}.json"
-      bucket_name = @config[:aws_s3][:bucket]
+      path = IronResponse::Protocol.s3_path(task_id)
+      bucket_name = params[:aws_s3][:bucket]
       AWS::S3::S3Object.store(path, data.to_json, bucket_name)
     end
   end
@@ -56,7 +56,7 @@ module IronResponse
       end
 
       task_ids.map do |task_id|
-        get_response_from_pid(@client.tasks.wait_for(task_id)._id)
+        get_response_from_task_id(@client.tasks.wait_for(task_id)._id)
       end
     end
 
@@ -68,9 +68,9 @@ module IronResponse
       bucket_name = @config[:aws_s3][:bucket]
       bucket      = AWS::S3::Bucket.find(bucket_name)
       path        = IronResponse::Protocol.s3_path(task_id)
-      response    = bucket[path]
+      response    = bucket[path].value
 
-      binding.pry
+      JSON.parse(response)
     end
 
     def create_code!
@@ -78,7 +78,6 @@ module IronResponse
       code.name(worker_name)
       code.gem("iron_response")
       @client.codes.create(code)
-      #@client.codes.patch(code)
     end
   end
 end
