@@ -37,7 +37,7 @@ end
 
 ## Rationale
 
-Iron.io's IronWorker is a great product that provides a lot of powerful concurrency options. With IronWorker, you can scale tasks to hundreds and even thousands of workers. However, IronWorker was missing one useful feature for me: responses. What do I mean? In the typical IronWorker setup, worker files are just one-off scripts run independently of the client that queues them up. For example:
+Iron.io's IronWorker is a great product that provides a lot of powerful concurrency options. With IronWorker, you can scale tasks to hundreds and even thousands of workers. However, IronWorker was missing one useful feature for me: responses. What do I mean? In the typical IronWorker setup, worker files are just one-off scripts that run independently of the client that queues them up. For example:
 
 ```ruby
 client = IronWorkerNG::Client.new
@@ -46,7 +46,7 @@ client = IronWorkerNG::Client.new
 end
 ```
 
-For many use cases, this is fine. But what if I want to know the result of `do_something`? A simple way to get the result would be for your worker to POST the final result somewhere, then have the client it. This gem simply abstracts this process away.
+For many use cases, this is fine. But what if I want to know the result of `do_something`? A simple way to get the result would be for your worker to POST the final result somewhere, then have the client it. This gem simply abstracts that process away, allowing the developer to avoid boilerplate and to keep worker code elegant.
 
 Under the hood, `iron_response` uses some functional and meta-programming to capture the final expression of a worker file, convert it to JSON, and then POST it to Amazon S3. When all the workers in an `IronResponse::Batch` have finished, the gem retrieves the file and converts the JSON string back to Ruby.
 
