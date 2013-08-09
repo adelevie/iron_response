@@ -1,9 +1,13 @@
 class Configuration
   def self.keys
     {
-      ironio: {
-        token: 1234,
-        project_id: 5678
+      iron_io: {
+        token:      "123",
+        project_id: "123"
+      },
+      aws_s3: {
+        access_key_id:     "123",
+        secret_access_key: "123"
       }
     }
   end

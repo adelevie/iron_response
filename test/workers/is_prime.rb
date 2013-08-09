@@ -5,6 +5,8 @@ IronResponse::Responder.new do
     ("1" * n =~ /^1?$|^(11+?)\1+$/) == 0 ? false : true
   end
 
+  result = is_prime?(params[:number])
+  p result
 
-  is_prime? params["number"]
+  return result
 end
