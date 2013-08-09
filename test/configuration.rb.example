@@ -1,0 +1,10 @@
+class Configuration
+  def self.keys
+    {
+      ironio: {
+        token: 1234,
+        project_id: 5678
+      }
+    }
+  end
+end
