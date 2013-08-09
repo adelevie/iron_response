@@ -1,0 +1,208 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Iron response by adelevie</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Iron response</h1>
+        <p>Provide a response object to remote worker scripts.</p>
+
+        <p class="view"><a href="https://github.com/adelevie/iron_response">View the Project on GitHub <small>adelevie/iron_response</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/adelevie/iron_response/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/adelevie/iron_response/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/adelevie/iron_response">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p><a href="https://codeclimate.com/github/adelevie/iron_response"><img src="https://codeclimate.com/github/adelevie/iron_response.png" alt="Code Climate"></a> <a href="http://badge.fury.io/rb/iron_response"><img src="https://badge.fury.io/rb/iron_response.png" alt="Gem Version"></a></p>
+
+<h1>
+<a name="iron_response" class="anchor" href="#iron_response"><span class="octicon octicon-link"></span></a>iron_response</h1>
+
+<p>Glues together IronWorker and AWS S3 to provide a response object to remote worker scripts. This allows you to write massively concurrent Ruby programs without worrying about threads.</p>
+
+<div class="highlight"><pre><span class="nb">require</span> <span class="s2">"iron_response"</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="p">}</span>
+<span class="n">batch</span> <span class="o">=</span> <span class="ss">IronResponse</span><span class="p">:</span><span class="ss">:Batch</span><span class="o">.</span><span class="n">new</span>
+
+<span class="n">batch</span><span class="o">.</span><span class="n">auto_update_worker</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="n">batch</span><span class="o">.</span><span class="n">config</span><span class="o">[</span><span class="ss">:iron_io</span><span class="o">]</span>   <span class="o">=</span> <span class="n">config</span><span class="o">[</span><span class="ss">:iron_io</span><span class="o">]</span>
+<span class="n">batch</span><span class="o">.</span><span class="n">config</span><span class="o">[</span><span class="ss">:aws_s3</span><span class="o">]</span>    <span class="o">=</span> <span class="n">config</span><span class="o">[</span><span class="ss">:aws_s3</span><span class="o">]</span>
+<span class="n">batch</span><span class="o">.</span><span class="n">worker</span>             <span class="o">=</span> <span class="s2">"test/workers/is_prime.rb"</span>
+<span class="n">batch</span><span class="o">.</span><span class="n">params_array</span>       <span class="o">=</span> <span class="nb">Array</span><span class="p">(</span><span class="mi">1</span><span class="o">.</span><span class="n">.</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span><span class="o">|</span><span class="n">i</span><span class="o">|</span> <span class="p">{</span><span class="ss">number</span><span class="p">:</span> <span class="n">i</span><span class="p">}}</span>
+
+<span class="n">results</span>                  <span class="o">=</span> <span class="n">batch</span><span class="o">.</span><span class="n">run!</span>
+
+<span class="nb">p</span> <span class="n">results</span>
+<span class="c1">#=&gt; [{"result"=&gt;false}, {"result"=&gt;true}, {"result"=&gt;true}...]</span>
+</pre></div>
+
+<p>Assumes you have a worker file called <code>is_prime.rb</code>:</p>
+
+<div class="highlight"><pre><span class="nb">require</span> <span class="s2">"iron_response"</span>
+
+<span class="ss">IronResponse</span><span class="p">:</span><span class="ss">:Responder</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="nb">binding</span><span class="p">)</span> <span class="k">do</span>
+  <span class="k">def</span> <span class="nf">is_prime?</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="p">(</span><span class="s2">"1"</span> <span class="o">*</span> <span class="n">n</span> <span class="o">=~</span> <span class="sr">/^1?$|^(11+?)\1+$/</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">?</span> <span class="kp">false</span> <span class="p">:</span> <span class="kp">true</span>
+  <span class="k">end</span>
+
+  <span class="p">{</span>
+   <span class="ss">result</span><span class="p">:</span> <span class="n">is_prime?</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:number</span><span class="o">]</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</pre></div>
+
+<h2>
+<a name="rationale" class="anchor" href="#rationale"><span class="octicon octicon-link"></span></a>Rationale</h2>
+
+<p>Iron.io's IronWorker is a great product that provides a lot of powerful concurrency options. With IronWorker, you can scale tasks to hundreds and even thousands of workers. However, IronWorker was missing one useful feature for me: responses. What do I mean? In the typical IronWorker setup, worker files are just one-off scripts that run independently of the client that queues them up. For example:</p>
+
+<div class="highlight"><pre><span class="n">client</span> <span class="o">=</span> <span class="ss">IronWorkerNG</span><span class="p">:</span><span class="ss">:Client</span><span class="o">.</span><span class="n">new</span>
+<span class="mi">100</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+  <span class="n">client</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">"do_something"</span><span class="p">,</span> <span class="ss">number</span><span class="p">:</span> <span class="n">i</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>For many use cases, this is fine. But what if I want to know the result of <code>do_something</code>? A simple way to get the result would be for your worker to POST the final result somewhere, then have the client it. This gem simply abstracts that process away, allowing the developer to avoid boilerplate and to keep worker code elegant.</p>
+
+<p>Under the hood, <code>iron_response</code> uses some functional and meta-programming to capture the final expression of a worker file, convert it to JSON, and then POST it to Amazon S3. When all the workers in an <code>IronResponse::Batch</code> have finished, the gem retrieves the file and converts the JSON string back to Ruby.</p>
+
+<p>This process means there a few important implications:</p>
+
+<ul>
+<li>Response objects "sent" from workers should be JSON-parseable. This means sticking to basic Ruby objects and data structures such as <code>String</code>, <code>Fixnum</code>, <code>Hash</code>, and <code>Array</code>.</li>
+<li>Though these objects must be parseable, they can be fairly large. Though I haven't figured out exactly what the limit is, you really are only constrained by IronWorkers RAM and HD limits, and the bandwidth between the client (your computer/server), IronWorker servers, and S3. In an ideal setup, all three of these components are inside of Amazon's cloud, allowing you to get very fast throughput.</li>
+</ul><p>One final gotcha: I haven't yet implemented a clean way to use the <code>iron_worker_ng</code> gem to declare dependencies. This should be done soon, though.</p>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>This gem requires a basic understanding of how to use <a href="https://github.com/iron-io/iron_worker_ruby_ng">IronWorker with Ruby</a>.</p>
+
+<p>Assuming you have an empy directory, called <code>foo</code>:</p>
+
+<div class="highlight"><pre><span class="nv">$ </span>mkdir workers
+<span class="nv">$ </span><span class="nb">cd </span>workers
+<span class="nv">$ </span>touch my_worker.rb
+</pre></div>
+
+<p><code>my_worker.rb</code> should look like this:</p>
+
+<div class="highlight"><pre><span class="nb">require</span> <span class="s2">"iron_response"</span>
+
+<span class="ss">IronResponse</span><span class="p">:</span><span class="ss">:Responder</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="nb">binding</span><span class="p">)</span> <span class="k">do</span>
+  <span class="c1"># your code here</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>To run this worker, create at the top-level of <code>foo</code> files called <code>configuration.rb</code> and <code>enqueue.rb</code>:</p>
+
+<p><code>configuration.rb</code>:</p>
+
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Configuration</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">keys</span>
+    <span class="p">{</span>
+      <span class="n">iron_io</span><span class="p">:</span> <span class="p">{</span>
+        <span class="ss">token</span><span class="p">:</span>      <span class="s2">"123"</span><span class="p">,</span>
+        <span class="n">project_id</span><span class="p">:</span> <span class="s2">"123"</span>
+      <span class="p">},</span>
+      <span class="n">aws_s3</span><span class="p">:</span> <span class="p">{</span>
+        <span class="n">access_key_id</span><span class="p">:</span>     <span class="s2">"123"</span><span class="p">,</span>
+        <span class="n">secret_access_key</span><span class="p">:</span> <span class="s2">"123"</span><span class="p">,</span>
+        <span class="ss">bucket</span><span class="p">:</span>            <span class="s2">"iron_response"</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Obviously, fill in the appropriate API keys. It is highly recommended that you do not use your AWS master keys. Instead, go to the AWS Console, click on "IAM", and create a user with a policy that allows it to edit the bucket named in the configuration file. Here's an example policy:</p>
+
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="nt">"Statement"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="nt">"Action"</span><span class="p">:</span> <span class="s2">"s3:*"</span><span class="p">,</span>
+      <span class="nt">"Effect"</span><span class="p">:</span> <span class="s2">"Allow"</span><span class="p">,</span>
+      <span class="nt">"Resource"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">"arn:aws:s3:::iron_response"</span><span class="p">,</span>
+        <span class="s2">"arn:aws:s3:::iron_response/*"</span>
+      <span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Now, write your queueing script:</p>
+
+<p><code>enqueue.rb</code>:</p>
+
+<div class="highlight"><pre><span class="n">require_relative</span> <span class="s2">"configuration"</span>
+<span class="nb">require</span> <span class="s2">"iron_response"</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="no">Configuration</span><span class="o">.</span><span class="n">keys</span>
+<span class="n">batch</span> <span class="o">=</span> <span class="ss">IronResponse</span><span class="p">:</span><span class="ss">:Batch</span><span class="o">.</span><span class="n">new</span>
+
+<span class="n">batch</span><span class="o">.</span><span class="n">auto_update_worker</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="n">batch</span><span class="o">.</span><span class="n">config</span>             <span class="o">=</span> <span class="n">config</span>
+<span class="n">batch</span><span class="o">.</span><span class="n">worker</span>             <span class="o">=</span> <span class="s2">"workers/my_worker.rb"</span>
+
+<span class="c1"># The `params_array` is an Array of Hashes </span>
+<span class="c1"># that get sent as the payload to IronWorker scripts.</span>
+<span class="n">batch</span><span class="o">.</span><span class="n">params_array</span>       <span class="o">=</span> <span class="nb">Array</span> <span class="p">(</span><span class="s2">"a"</span><span class="o">.</span><span class="n">.</span><span class="s2">"z"</span><span class="p">)</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span><span class="o">|</span><span class="n">i</span><span class="o">|</span> <span class="p">{</span><span class="ss">letter</span><span class="p">:</span> <span class="n">i</span><span class="p">}}</span>
+
+<span class="n">results</span>                  <span class="o">=</span> <span class="n">batch</span><span class="o">.</span><span class="n">run!</span>
+</pre></div>
+
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Add this line to your application's Gemfile:</p>
+
+<div class="highlight"><pre><span class="n">gem</span> <span class="s2">"iron_response"</span>
+</pre></div>
+
+<p>And then execute:</p>
+
+<div class="highlight"><pre><span class="nv">$ </span>bundle
+</pre></div>
+
+<p>Or install it yourself as:</p>
+
+<div class="highlight"><pre><span class="nv">$ </span>gem install iron_response
+</pre></div>
+
+<h2>
+<a name="contributing" class="anchor" href="#contributing"><span class="octicon octicon-link"></span></a>Contributing</h2>
+
+<ol>
+<li>Fork it</li>
+<li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
+<li>Commit your changes (<code>git commit -am 'Added some feature'</code>)</li>
+<li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
+<li>Create new Pull Request</li>
+</ol>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/adelevie">adelevie</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
