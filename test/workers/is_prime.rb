@@ -8,5 +8,5 @@ IronResponse::Responder.new do
   result = is_prime?(params[:number])
   p result
 
-  return result
+  result
 end

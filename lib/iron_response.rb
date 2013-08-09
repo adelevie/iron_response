@@ -1,5 +1,6 @@
 require "iron_response/version"
 require "iron_worker_ng"
+require "aws/s3"
 
 module IronResponse
   class Responder
@@ -39,11 +40,13 @@ module IronResponse
       end
 
       pids.map do |pid|
-        get_response_from_pid(@client.tasks.wait_for(pid))
+        get_response_from_pid(@client.tasks.wait_for(pid)._id)
       end
     end
 
     def get_response_from_pid(pid)
+      bucket = @config[:aws_s3][:bucket]
+      path = 
       "FakeResponseFromPid:#{pid}"
     end
 
@@ -52,6 +55,7 @@ module IronResponse
       code.name(worker_name)
       code.gem("iron_response")
       @client.codes.create(code)
+      #@client.codes.patch(code)
     end
   end
 end

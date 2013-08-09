@@ -6,21 +6,17 @@ Provides a response object for IronWorkers.
 require "iron_response"
 
 batch = IronResponse::Batch.new
-batch.config[:aws_s3] = {
-  access_key_id: 123, 
-  secret_access_key: 456, 
-  bucket: "iron_worker"
-}
-batch.config[:iron_io] = {
-  project_id: "abc", 
-  token: "defg"
-}
-batch.worker       = "path/to/worker/is_prime"
-batch.params_array = [1..1000].map {|i| {number: i}}
-results            = batch.run!
+
+batch.auto_update_worker = true
+batch.config[:iron_io]   = config[:iron_io]
+batch.config[:aws_s3]    = config[:aws_s3]
+batch.worker             = "test/workers/is_prime.rb"
+batch.params_array       = Array(1..10).map {|i| {number: i}}
+
+results                  = batch.run!
 
 p results
-#=> [true, true, true, false, true, false...]
+#=> [false, true, true, false, true, false...]
 ```
 
 Assumes you have a worker file called `is_prime.rb`:
