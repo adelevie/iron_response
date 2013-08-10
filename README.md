@@ -48,7 +48,7 @@ client = IronWorkerNG::Client.new
 end
 ```
 
-For many use cases, this is fine. But what if I want to know the result of `do_something`? A simple way to get the result would be for your worker to POST the final result somewhere, then have the client it. This gem simply abstracts that process away, allowing the developer to avoid boilerplate and to keep worker code elegant.
+For many use cases, this is fine. But what if I want to know the result of `do_something`? A simple way to get the result would be for your worker to POST the final result somewhere, then have the client retrieve it. This gem simply abstracts that process away, allowing the developer to avoid boilerplate and to keep worker code elegant.
 
 On top of all this, another benefit to using this gem is that it makes it much easier to test workers.
 
