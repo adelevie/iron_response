@@ -73,10 +73,21 @@ module IronResponse
       JSON.parse(response)
     end
 
+    def code
+      @code ||= IronWorkerNG::Code::Ruby.new(exec: @worker).tap do |c|
+        c.name = worker_name
+        c.merge_gem("iron_response")
+        c.runtime = "ruby"
+      end
+
+      @code
+    end
+
+    def patch_code!
+      @client.codes.patch(code)
+    end
+
     def create_code!
-      code = IronWorkerNG::Code::Ruby.new(exec: @worker)
-      code.name(worker_name)
-      code.gem("iron_response")
       @client.codes.create(code)
     end
   end
