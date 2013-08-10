@@ -57,7 +57,7 @@ Under the hood, `iron_response` uses some functional and meta-programming to cap
 This process means there a few important implications:
 
 - Response objects "sent" from workers should be JSON-parseable. This means sticking to basic Ruby objects and data structures such as `String`, `Fixnum`, `Hash`, and `Array`.
-- Though these objects must be parseable, they can be fairly large. Though I haven't figured out exactly what the limit is, you really are only constrained by IronWorkers RAM and HD limits, and the bandwidth between the client (your computer/server), IronWorker servers, and S3. In an ideal setup, all three of these components are inside of Amazon's cloud, allowing you to get very fast throughput.
+- Though these objects must be parseable, they can be fairly large. Though I haven't figured out exactly what the limit is, you really are only constrained by IronWorker's RAM and HD limits, and the bandwidth between the client (your computer/server), IronWorker servers, and S3. In an ideal setup, all three of these components are inside of Amazon's cloud, allowing you to get very fast throughput.
 
 ## Usage
 
