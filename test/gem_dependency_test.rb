@@ -6,7 +6,7 @@ class GemDependencyTest < MiniTest::Unit::TestCase
     config = Configuration.keys
     batch = IronResponse::Batch.new
     
-    #batch.auto_update_worker = true
+    batch.auto_update_worker = true
     
     batch.config[:iron_io]   = config[:iron_io]
     batch.config[:aws_s3]    = config[:aws_s3]
