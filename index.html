@@ -78,7 +78,9 @@
 <span class="k">end</span>
 </pre></div>
 
-<p>For many use cases, this is fine. But what if I want to know the result of <code>do_something</code>? A simple way to get the result would be for your worker to POST the final result somewhere, then have the client it. This gem simply abstracts that process away, allowing the developer to avoid boilerplate and to keep worker code elegant.</p>
+<p>For many use cases, this is fine. But what if I want to know the result of <code>do_something</code>? A simple way to get the result would be for your worker to POST the final result somewhere, then have the client retrieve it. This gem simply abstracts that process away, allowing the developer to avoid boilerplate and to keep worker code elegant.</p>
+
+<p>On top of all this, another benefit to using this gem is that it makes it much easier to test workers.</p>
 
 <p>Under the hood, <code>iron_response</code> uses some functional and meta-programming to capture the final expression of a worker file, convert it to JSON, and then POST it to Amazon S3. When all the workers in an <code>IronResponse::Batch</code> have finished, the gem retrieves the file and converts the JSON string back to Ruby.</p>
 
@@ -86,10 +88,8 @@
 
 <ul>
 <li>Response objects "sent" from workers should be JSON-parseable. This means sticking to basic Ruby objects and data structures such as <code>String</code>, <code>Fixnum</code>, <code>Hash</code>, and <code>Array</code>.</li>
-<li>Though these objects must be parseable, they can be fairly large. Though I haven't figured out exactly what the limit is, you really are only constrained by IronWorkers RAM and HD limits, and the bandwidth between the client (your computer/server), IronWorker servers, and S3. In an ideal setup, all three of these components are inside of Amazon's cloud, allowing you to get very fast throughput.</li>
-</ul><p>One final gotcha: I haven't yet implemented a clean way to use the <code>iron_worker_ng</code> gem to declare dependencies. This should be done soon, though.</p>
-
-<h2>
+<li>Though these objects must be parseable, they can be fairly large. Though I haven't figured out exactly what the limit is, you really are only constrained by IronWorker's RAM and HD limits, and the bandwidth between the client (your computer/server), IronWorker servers, and S3. In an ideal setup, all three of these components are inside of Amazon's cloud, allowing you to get very fast throughput.</li>
+</ul><h2>
 <a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
 
 <p>This gem requires a basic understanding of how to use <a href="https://github.com/iron-io/iron_worker_ruby_ng">IronWorker with Ruby</a>.</p>
@@ -166,6 +166,13 @@
 <span class="n">batch</span><span class="o">.</span><span class="n">params_array</span>       <span class="o">=</span> <span class="nb">Array</span> <span class="p">(</span><span class="s2">"a"</span><span class="o">.</span><span class="n">.</span><span class="s2">"z"</span><span class="p">)</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span><span class="o">|</span><span class="n">i</span><span class="o">|</span> <span class="p">{</span><span class="ss">letter</span><span class="p">:</span> <span class="n">i</span><span class="p">}}</span>
 
 <span class="n">results</span>                  <span class="o">=</span> <span class="n">batch</span><span class="o">.</span><span class="n">run!</span>
+</pre></div>
+
+<p>If your worker code requires any gems, you can use <a href="https://github.com/iron-io/iron_worker_ruby_ng"><code>iron_worker_ng</code></a>'s API:</p>
+
+<div class="highlight"><pre><span class="n">batch</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">merge_gem</span><span class="p">(</span><span class="s2">"nokogiri"</span><span class="p">,</span> <span class="s2">"&lt; 1.6.0"</span><span class="p">)</span> <span class="c1"># decreases remote build time</span>
+<span class="n">batch</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">merge_gem</span><span class="p">(</span><span class="s2">"ecfs"</span><span class="p">)</span>
+<span class="n">batch</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">full_remote_build</span><span class="p">(</span><span class="kp">true</span><span class="p">)</span>
 </pre></div>
 
 <h2>
