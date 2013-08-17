@@ -2,17 +2,16 @@
 
 # iron_response
 
-Glues together IronWorker and AWS S3 to provide a response object to remote worker scripts. This allows you to write massively concurrent Ruby programs without worrying about threads.
+Provides a response object to remote worker scripts. This allows you to write massively concurrent Ruby programs without worrying about threads.
 
 ```ruby
 require "iron_response"
 
-config = {...}
+config = {token: "123", project_id: "456"}
 batch = IronResponse::Batch.new
 
 batch.auto_update_worker = true
 batch.config[:iron_io]   = config[:iron_io]
-batch.config[:aws_s3]    = config[:aws_s3]
 batch.worker             = "test/workers/is_prime.rb"
 batch.params_array       = Array(1..10).map {|i| {number: i}}
 
@@ -52,12 +51,12 @@ For many use cases, this is fine. But what if I want to know the result of `do_s
 
 On top of all this, another benefit to using this gem is that it makes it much easier to test workers.
 
-Under the hood, `iron_response` uses some functional and meta-programming to capture the final expression of a worker file, convert it to JSON, and then POST it to Amazon S3. When all the workers in an `IronResponse::Batch` have finished, the gem retrieves the file and converts the JSON string back to Ruby.
+Under the hood, `iron_response` uses some functional and meta-programming to capture the final expression of a worker file, convert it to JSON, and then POST it to either IronCache or Amazon S3. When all the workers in an `IronResponse::Batch` have finished, the gem retrieves the file and converts the JSON string back to Ruby.
 
 This process means there a few important implications:
 
 - Response objects "sent" from workers should be JSON-parseable. This means sticking to basic Ruby objects and data structures such as `String`, `Fixnum`, `Hash`, and `Array`.
-- Though these objects must be parseable, they can be fairly large. Though I haven't figured out exactly what the limit is, you really are only constrained by IronWorker's RAM and HD limits, and the bandwidth between the client (your computer/server), IronWorker servers, and S3. In an ideal setup, all three of these components are inside of Amazon's cloud, allowing you to get very fast throughput.
+- If you're using IronCache (and not S3) for storage, response objects must be 1 MB or small.
 
 ## Usage
 
@@ -101,6 +100,8 @@ class Configuration
   end
 end
 ```
+
+Of course, if you don't want to use S3, just leave that part out of the `Hash`. You can specify `:bucket` for S3 and `:cache` for for IronCache. Otherwise they both default to `"iron_response".`
 
 Obviously, fill in the appropriate API keys. It is highly recommended that you do not use your AWS master keys. Instead, go to the AWS Console, click on "IAM", and create a user with a policy that allows it to edit the bucket named in the configuration file. Here's an example policy:
 
