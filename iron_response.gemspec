@@ -17,6 +17,7 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "iron_worker_ng"
   gem.add_dependency "aws-s3"
+  gem.add_dependency "iron_cache"
   gem.add_development_dependency "minitest", "~> 4.7.3"
   gem.add_development_dependency "pry"
   gem.add_development_dependency "pry-rescue"

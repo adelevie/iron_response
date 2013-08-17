@@ -1,6 +1,7 @@
 require "iron_response/version"
 require "iron_worker_ng"
 require "aws/s3"
+require "iron_cache"
 require "json"
 
 module IronResponse
@@ -10,21 +11,38 @@ module IronResponse
     def Protocol.s3_path(task_id)
       "#{S3_PATH}/#{task_id}.json"
     end
+
+    def Protocol.iron_cache_key(task_id)
+      task_id
+    end
   end
 
-  class Responder
+  class Worker
     def initialize(binding, &block)
       task_id = eval("@iron_task_id", binding)
       params  = eval("params", binding)
-      send_data_to_s3(params, task_id, block.call)
+      @config = params[:config]
+      send_data_to_iron_cache(params, task_id, block.call)
+      #send_data_to_s3(params, task_id, block.call)
+    end
+
+    def send_data_to_iron_cache(params, task_id, data)
+      cache_client = IronCache::Client.new(@config[:iron_io])
+      cache_name   = @config[:iron_io][:cache].nil? ? "iron_response" : @config[:iron_io][:cache]
+      cache        = cache_client.cache(cache_name)
+
+      key   = IronResponse::Protocol.iron_cache_key(task_id)
+      value = data.to_json
+
+      cache.put(key, value)
     end
 
     def send_data_to_s3(params, task_id, data)
-      aws_s3 = params[:aws_s3]
+      aws_s3 = @config[:aws_s3]
       AWS::S3::Base.establish_connection! access_key_id:     aws_s3[:access_key_id],
                                           secret_access_key: aws_s3[:secret_access_key]
       path = IronResponse::Protocol.s3_path(task_id)
-      bucket_name = params[:aws_s3][:bucket]
+      bucket_name = @config[:aws_s3][:bucket]
       AWS::S3::S3Object.store(path, data.to_json, bucket_name)
     end
   end
@@ -51,7 +69,8 @@ module IronResponse
       end
 
       task_ids = params_array.map do |params|
-        params[:aws_s3] = @config[:aws_s3]
+        params[:config] = @config
+        #params[:aws_s3] = @config[:aws_s3]
         @client.tasks.create(worker_name, params)._id
       end
 
@@ -61,16 +80,28 @@ module IronResponse
     end
 
     def get_response_from_task_id(task_id)
-      aws_s3 = @config[:aws_s3]
-      AWS::S3::Base.establish_connection! access_key_id:     aws_s3[:access_key_id],
-                                          secret_access_key: aws_s3[:secret_access_key]
+      get_iron_cache_response(task_id)
+      #aws_s3 = @config[:aws_s3]
+      #AWS::S3::Base.establish_connection! access_key_id:     aws_s3[:access_key_id],
+      #                                    secret_access_key: aws_s3[:secret_access_key]
 
-      bucket_name = @config[:aws_s3][:bucket]
-      bucket      = AWS::S3::Bucket.find(bucket_name)
-      path        = IronResponse::Protocol.s3_path(task_id)
-      response    = bucket[path].value
+      #bucket_name = @config[:aws_s3][:bucket]
+      #bucket      = AWS::S3::Bucket.find(bucket_name)
+      #path        = IronResponse::Protocol.s3_path(task_id)
+      #response    = bucket[path].value
 
-      JSON.parse(response)
+      #JSON.parse(response)
+    end
+
+    def get_iron_cache_response(task_id)
+      cache_client = IronCache::Client.new(@config[:iron_io])
+      cache_name   = @config[:iron_io][:cache].nil? ? "iron_response" : @config[:iron_io][:cache]
+      cache        = cache_client.cache(cache_name)
+
+      key   = IronResponse::Protocol.iron_cache_key(task_id)
+      value = cache.get(key).value
+
+      JSON.parse(value)
     end
 
     def code
