@@ -8,8 +8,10 @@ class GemDependencyTest < MiniTest::Unit::TestCase
     
     batch.auto_update_worker = true
     
-    batch.config[:iron_io]   = config[:iron_io]
-    batch.config[:aws_s3]    = config[:aws_s3]
+    batch.config = config
+
+    #batch.config[:iron_io]   = config[:iron_io]
+    #batch.config[:aws_s3]    = config[:aws_s3]
     batch.worker             = "test/workers/fcc_filings_counter.rb"
 
     batch.code.merge_gem("nokogiri", "< 1.6.0") # keeps the build times low

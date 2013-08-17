@@ -13,8 +13,6 @@ class SynopsisTest < MiniTest::Unit::TestCase
     
     results                  = batch.run!
 
-    binding.pry
-
     assert_equal Array, results.class
     assert_equal batch.params_array.length, results.length
     assert_equal true, results.select {|r| r.nil?}.length == 0
@@ -30,8 +28,6 @@ class SynopsisTest < MiniTest::Unit::TestCase
     batch.params_array       = Array(1..4).map {|i| {number: i}}
     
     results                  = batch.run!
-
-    binding.pry
 
     assert_equal Array, results.class
     assert_equal batch.params_array.length, results.length

@@ -135,10 +135,11 @@ module IronResponse
     end
 
     def code
-      @code ||= IronWorkerNG::Code::Ruby.new(exec: @worker).tap do |c|
-        c.name = worker_name
-        c.merge_gem("iron_response")
-        c.runtime = "ruby"
+      if @code.nil?
+        @code = IronWorkerNG::Code::Ruby.new(exec: @worker)
+        @code.name = worker_name
+        @code.merge_gem("iron_response")
+        @code.runtime = "ruby"
       end
 
       @code
