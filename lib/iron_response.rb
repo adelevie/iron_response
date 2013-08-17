@@ -5,15 +5,27 @@ require "iron_cache"
 require "json"
 
 module IronResponse
-  module Protocol
+  module Common
     S3_PATH = "tasks"
 
-    def Protocol.s3_path(task_id)
+    def Common.s3_path(task_id)
       "#{S3_PATH}/#{task_id}.json"
     end
 
-    def Protocol.iron_cache_key(task_id)
+    def Common.s3_bucket_name(config)
+      config[:aws_s3][:bucket].nil? ? "iron_response" : @config[:aws_s3][:bucket]
+    end
+
+    def Common.iron_cache_key(task_id)
       task_id
+    end
+
+    def Common.iron_cache_cache_name(config)
+      config[:iron_io][:cache].nil? ? "iron_response" : @config[:iron_io][:cache]
+    end
+
+    def Common.response_provider(config)
+      config[:aws_s3].nil? ? :iron_cache : :aws_s3
     end
   end
 
@@ -22,16 +34,21 @@ module IronResponse
       task_id = eval("@iron_task_id", binding)
       params  = eval("params", binding)
       @config = params[:config]
-      send_data_to_iron_cache(params, task_id, block.call)
-      #send_data_to_s3(params, task_id, block.call)
+
+      case IronResponse::Common.response_provider(@config)
+      when :iron_cache
+        send_data_to_iron_cache(params, task_id, block.call)
+      when :aws_s3
+        send_data_to_s3(params, task_id, block.call)
+      end
     end
 
     def send_data_to_iron_cache(params, task_id, data)
       cache_client = IronCache::Client.new(@config[:iron_io])
-      cache_name   = @config[:iron_io][:cache].nil? ? "iron_response" : @config[:iron_io][:cache]
+      cache_name   = IronResponse::Common.iron_cache_cache_name(@config)
       cache        = cache_client.cache(cache_name)
 
-      key   = IronResponse::Protocol.iron_cache_key(task_id)
+      key   = IronResponse::Common.iron_cache_key(task_id)
       value = data.to_json
 
       cache.put(key, value)
@@ -41,9 +58,12 @@ module IronResponse
       aws_s3 = @config[:aws_s3]
       AWS::S3::Base.establish_connection! access_key_id:     aws_s3[:access_key_id],
                                           secret_access_key: aws_s3[:secret_access_key]
-      path = IronResponse::Protocol.s3_path(task_id)
-      bucket_name = @config[:aws_s3][:bucket]
-      AWS::S3::S3Object.store(path, data.to_json, bucket_name)
+      
+      path        = IronResponse::Common.s3_path(task_id)
+      bucket_name = IronResponse::Common.s3_bucket_name(@config)
+      value       = data.to_json
+
+      AWS::S3::S3Object.store(path, value, bucket_name)
     end
   end
 
@@ -70,7 +90,6 @@ module IronResponse
 
       task_ids = params_array.map do |params|
         params[:config] = @config
-        #params[:aws_s3] = @config[:aws_s3]
         @client.tasks.create(worker_name, params)._id
       end
 
@@ -80,25 +99,33 @@ module IronResponse
     end
 
     def get_response_from_task_id(task_id)
-      get_iron_cache_response(task_id)
-      #aws_s3 = @config[:aws_s3]
-      #AWS::S3::Base.establish_connection! access_key_id:     aws_s3[:access_key_id],
-      #                                    secret_access_key: aws_s3[:secret_access_key]
+      case IronResponse::Common.response_provider(@config)
+      when :iron_cache
+        get_iron_cache_response(task_id)
+      when :aws_s3
+        get_aws_s3_response(task_id)
+      end
+    end
 
-      #bucket_name = @config[:aws_s3][:bucket]
-      #bucket      = AWS::S3::Bucket.find(bucket_name)
-      #path        = IronResponse::Protocol.s3_path(task_id)
-      #response    = bucket[path].value
+    def get_aws_s3_response(task_id)
+      aws_s3 = @config[:aws_s3]
+      AWS::S3::Base.establish_connection! access_key_id:     aws_s3[:access_key_id],
+                                          secret_access_key: aws_s3[:secret_access_key]
 
-      #JSON.parse(response)
+      bucket_name = IronResponse::Common.s3_bucket_name(@config)
+      bucket      = AWS::S3::Bucket.find(bucket_name)
+      path        = IronResponse::Common.s3_path(task_id)
+      response    = bucket[path].value
+
+      JSON.parse(response)
     end
 
     def get_iron_cache_response(task_id)
       cache_client = IronCache::Client.new(@config[:iron_io])
-      cache_name   = @config[:iron_io][:cache].nil? ? "iron_response" : @config[:iron_io][:cache]
+      cache_name   = IronResponse::Common.iron_cache_cache_name(@config)
       cache        = cache_client.cache(cache_name)
 
-      key   = IronResponse::Protocol.iron_cache_key(task_id)
+      key   = IronResponse::Common.iron_cache_key(task_id)
       value = cache.get(key).value
 
       JSON.parse(value)
