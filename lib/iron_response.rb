@@ -138,7 +138,7 @@ module IronResponse
       if @code.nil?
         @code = IronWorkerNG::Code::Ruby.new(exec: @worker)
         @code.name = worker_name
-        @code.merge_gem("iron_response")
+        @code.merge_gem("iron_response", ">= 0.1.0")
         @code.runtime = "ruby"
       end
 

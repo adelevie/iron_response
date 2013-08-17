@@ -25,7 +25,7 @@ Assumes you have a worker file called `is_prime.rb`:
 ```ruby
 require "iron_response"
 
-IronResponse::Responder.new(binding) do
+IronResponse::Worker.new(binding) do
   def is_prime?(n)
     ("1" * n =~ /^1?$|^(11+?)\1+$/) == 0 ? false : true
   end
