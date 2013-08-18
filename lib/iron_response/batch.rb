@@ -12,7 +12,6 @@ module IronResponse
     attr_accessor :results
 
     def initialize
-      @results = []
       @config  = {}
     end
 
@@ -32,11 +31,9 @@ module IronResponse
         @client.tasks.create(worker_name, params)._id
       end
 
-      task_ids.each do |task_id|
-        @results << get_response_from_task_id(@client.tasks.wait_for(task_id)._id)
+      task_ids.map do |task_id|
+        get_response_from_task_id(@client.tasks.wait_for(task_id)._id)
       end
-
-      @results
     end
 
     def get_response_from_task_id(task_id)
@@ -58,7 +55,7 @@ module IronResponse
       path        = IronResponse::Common.s3_path(task_id)
       response    = bucket[path]
 
-      response.value.nil? ? "error" : JSON.parse(response.value)
+      response.nil? ? "error" : JSON.parse(response.value)
     end
 
     def get_iron_cache_response(task_id)
@@ -69,7 +66,7 @@ module IronResponse
       key          = IronResponse::Common.iron_cache_key(task_id)
       response     = cache.get(key)
 
-      response.value.nil? ? "error" : JSON.parse(response.value)
+      response.nil? ? "error" : JSON.parse(response.value)
     end
 
     def code
