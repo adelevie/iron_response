@@ -9,9 +9,11 @@ module IronResponse
     attr_accessor :worker
     attr_accessor :params_array
     attr_accessor :auto_update_worker
+    attr_accessor :results
 
     def initialize
-      @config = {}
+      @results = []
+      @config  = {}
     end
 
     def worker_name
@@ -30,9 +32,11 @@ module IronResponse
         @client.tasks.create(worker_name, params)._id
       end
 
-      task_ids.map do |task_id|
-        get_response_from_task_id(@client.tasks.wait_for(task_id)._id)
+      task_ids.each do |task_id|
+        @results << get_response_from_task_id(@client.tasks.wait_for(task_id)._id)
       end
+
+      @results
     end
 
     def get_response_from_task_id(task_id)
