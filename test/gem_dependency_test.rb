@@ -4,15 +4,9 @@ class GemDependencyTest < MiniTest::Unit::TestCase
   def test_synopsis_with_iron_cache
 
     config = Configuration.keys
-    batch = IronResponse::Batch.new
+    batch = IronResponse::Batch.new(iron_io: config[:iron_io])
     
-    #batch.auto_update_worker = true
-    
-    batch.config[:iron_io] = config[:iron_io]
-
-    #batch.config[:iron_io]   = config[:iron_io]
-    #batch.config[:aws_s3]    = config[:aws_s3]
-    batch.worker             = "test/workers/fcc_filings_counter.rb"
+    batch.worker = "test/workers/fcc_filings_counter.rb"
 
     batch.code.merge_gem("nokogiri", "< 1.6.0") # keeps the build times low
     batch.code.merge_gem("ecfs")
@@ -24,26 +18,29 @@ class GemDependencyTest < MiniTest::Unit::TestCase
                                 "13-150", "13-5", 
                                 "10-71"
                                 ].map { |i| {docket_number: i} } 
-    
+    batch.create_code!
+
     results                  = batch.run!
+
+    binding.pry
+
+    assert_equal batch.params_array.length, results.length
+
+    results.select! {|r| !r.is_a?(IronResponse::Error)}
 
     total = results.map {|r| r["length"]}.inject(:+)
 
     p "There are #{total} total filings in these dockets."
 
     assert_equal Array, results.class
-    assert_equal batch.params_array.length, results.length
   end
 
   def test_synopsis_with_aws_s3
 
     config = Configuration.keys
-    batch = IronResponse::Batch.new
-    
-    #batch.auto_update_worker = true
-    
-    batch.config = config
-    batch.worker             = "test/workers/fcc_filings_counter.rb"
+    batch = IronResponse::Batch.new(config)
+
+    batch.worker = "test/workers/fcc_filings_counter.rb"
 
     batch.code.merge_gem("nokogiri", "< 1.6.0") # keeps the build times low
     batch.code.merge_gem("ecfs")
@@ -56,14 +53,20 @@ class GemDependencyTest < MiniTest::Unit::TestCase
                                 "10-71"
                                 ].map { |i| {docket_number: i} } 
     
-    results                  = batch.run!
+    batch.create_code!
+    results = batch.run!
+
+    assert_equal batch.params_array.length, results.length
+
+    binding.pry
+
+    results.select! {|r| !r.is_a?(IronResponse::Error)}
 
     total = results.map {|r| r["length"]}.inject(:+)
 
     p "There are #{total} total filings in these dockets."
 
     assert_equal Array, results.class
-    assert_equal batch.params_array.length, results.length
   end
 
 end

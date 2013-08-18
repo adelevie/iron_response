@@ -8,11 +8,11 @@ module IronResponse
     attr_accessor :config
     attr_accessor :worker
     attr_accessor :params_array
-    attr_accessor :auto_update_worker
     attr_accessor :results
 
-    def initialize
-      @config  = {}
+    def initialize(config)
+      @config = config
+      @client = IronWorkerNG::Client.new(@config[:iron_io])
     end
 
     def worker_name
@@ -20,12 +20,6 @@ module IronResponse
     end
 
     def run!
-      @client = IronWorkerNG::Client.new(@config[:iron_io])
-
-      if @auto_update_worker
-        create_code!
-      end
-
       task_ids = params_array.map do |params|
         params[:config] = @config
         @client.tasks.create(worker_name, params)._id
@@ -55,7 +49,7 @@ module IronResponse
       path        = IronResponse::Common.s3_path(task_id)
       response    = bucket[path]
 
-      response.nil? ? "error" : JSON.parse(response.value)
+      IronResponse::Common.handle_response(response, task_id, @client)
     end
 
     def get_iron_cache_response(task_id)
@@ -66,7 +60,7 @@ module IronResponse
       key          = IronResponse::Common.iron_cache_key(task_id)
       response     = cache.get(key)
 
-      response.nil? ? "error" : JSON.parse(response.value)
+      IronResponse::Common.handle_response(response, task_id, @client)
     end
 
     def code
@@ -84,9 +78,8 @@ module IronResponse
       @client.codes.patch(code)
     end
 
-    def create_code!
-      @client.codes.create(code)
+    def create_code!(options={})
+      @client.codes.create(code, options)
     end
   end
-
 end

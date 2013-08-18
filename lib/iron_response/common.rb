@@ -24,5 +24,14 @@ module IronResponse
     def Common.response_provider(config)
       config[:aws_s3].nil? ? :iron_cache : :aws_s3
     end
+
+    def Common.handle_response(response, task_id, client)
+      if response.nil?
+        msg = client.tasks_log(task_id)
+        IronResponse::Error.new("IronWorker error: #{msg}")
+      else 
+        JSON.parse(response.value)
+      end
+    end
   end
 end
