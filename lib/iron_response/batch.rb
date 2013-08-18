@@ -56,20 +56,20 @@ module IronResponse
       bucket_name = IronResponse::Common.s3_bucket_name(@config)
       bucket      = AWS::S3::Bucket.find(bucket_name)
       path        = IronResponse::Common.s3_path(task_id)
-      response    = bucket[path].value
+      response    = bucket[path]
 
-      JSON.parse(response)
+      response.value.nil? ? "error" : JSON.parse(response.value)
     end
 
     def get_iron_cache_response(task_id)
       cache_client = IronCache::Client.new(@config[:iron_io])
       cache_name   = IronResponse::Common.iron_cache_cache_name(@config)
       cache        = cache_client.cache(cache_name)
+      
+      key          = IronResponse::Common.iron_cache_key(task_id)
+      response     = cache.get(key)
 
-      key   = IronResponse::Common.iron_cache_key(task_id)
-      value = cache.get(key).value
-
-      JSON.parse(value)
+      response.value.nil? ? "error" : JSON.parse(response.value)
     end
 
     def code
