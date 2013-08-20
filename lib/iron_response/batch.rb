@@ -69,8 +69,8 @@ module IronResponse
     end
 
     def runtime
-      return "ruby" if @worker.end_with(".rb")
-      return "node" if @worker.end_with(".js")
+      return "ruby" if @worker.end_with?(".rb")
+      return "node" if @worker.end_with?(".js")
     end
 
     def prepare_ruby_code(code)
