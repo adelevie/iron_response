@@ -19,6 +19,10 @@ module IronResponse
       @worker.split("/").last.split(".rb").first
     end
 
+    def worker_language
+      is_ruby 
+    end
+
     def run!
       task_ids = params_array.map do |params|
         params[:config] = @config
@@ -26,6 +30,7 @@ module IronResponse
       end
 
       task_ids.map do |task_id|
+        p "Fetching response for IronWorker task #{task_id}"
         get_response_from_task_id(@client.tasks.wait_for(task_id)._id)
       end
     end
@@ -63,12 +68,33 @@ module IronResponse
       IronResponse::Common.handle_response(response, task_id, @client)
     end
 
+    def runtime
+      return "ruby" if @worker.end_with(".rb")
+      return "node" if @worker.end_with(".js")
+    end
+
+    def prepare_ruby_code(code)
+      code.runtime = "ruby"
+    end
+
+    def prepare_node_code(code)
+      code.runtime = "node"
+      code.dir     = "node_modules"
+      code.file    = "package.json"
+    end
+
     def code
       if @code.nil?
         @code = IronWorkerNG::Code::Ruby.new(exec: @worker)
         @code.name = worker_name
         @code.merge_gem("iron_response", IronResponse::VERSION) # bootstraps the current version with the worker
-        @code.runtime = "ruby"
+
+        case runtime
+        when "ruby"
+          prepare_ruby_code(@code)
+        when "node"
+          prepare_node_code(@code)
+        end
       end
 
       @code
