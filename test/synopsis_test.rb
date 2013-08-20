@@ -15,7 +15,7 @@ class SynopsisTest < MiniTest::Unit::TestCase
 
     results.select! {|r| !r.is_a?(IronResponse::Error)}
     
-    binding.pry
+    #binding.pry
 
     assert_equal Array, results.class
   end
@@ -35,7 +35,7 @@ class SynopsisTest < MiniTest::Unit::TestCase
 
     results.select! {|r| !r.is_a?(IronResponse::Error)}
 
-    binding.pry
+    #binding.pry
 
     assert_equal Array, results.class
   end

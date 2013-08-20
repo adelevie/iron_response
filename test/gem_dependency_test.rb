@@ -22,7 +22,7 @@ class GemDependencyTest < MiniTest::Unit::TestCase
 
     results                  = batch.run!
 
-    binding.pry
+    #binding.pry
 
     assert_equal batch.params_array.length, results.length
 
@@ -58,7 +58,7 @@ class GemDependencyTest < MiniTest::Unit::TestCase
 
     assert_equal batch.params_array.length, results.length
 
-    binding.pry
+    #binding.pry
 
     results.select! {|r| !r.is_a?(IronResponse::Error)}
 
