@@ -12,10 +12,10 @@ batch  = IronResponse::Batch.new(config)
 
 code = IronWorkerNG::Code::Ruby.new
 code.runtime = "ruby"
-code.exec "test/workers/hello.rb"
+code.exec "test/workers/is_prime.rb"
 batch.code = code
 
-batch.params_array = Array(1..4).map {|i| {number: i}}
+batch.params_array = Array(1..10).map {|i| {number: i}}
 batch.create_code!
 
 results = batch.run!
