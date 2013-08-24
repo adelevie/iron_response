@@ -8,13 +8,17 @@ Provides a response object to remote worker scripts. This allows you to write ma
 require "iron_response"
 
 config = {token: "123", project_id: "456"}
-batch = IronResponse::Batch.new(config)
+batch  = IronResponse::Batch.new(config)
 
-batch.worker             = "test/workers/is_prime.rb"
-batch.params_array       = Array(1..10).map {|i| {number: i}}
-batch.create_code!(max_concurrency: 4)
+code = IronWorkerNG::Code::Ruby.new
+code.runtime = "ruby"
+code.exec "test/workers/hello.rb"
+batch.code = code
 
-results                  = batch.run!
+batch.params_array = Array(1..4).map {|i| {number: i}}
+batch.create_code!
+
+results = batch.run!
 
 p results
 #=> [{"result"=>false}, {"result"=>true}, {"result"=>true}...]
