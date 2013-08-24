@@ -6,9 +6,10 @@ require "json"
 module IronResponse
   class Batch
     attr_accessor :config
-    attr_accessor :worker
+    attr_accessor :name
     attr_accessor :params_array
     attr_accessor :results
+    attr_accessor :code
 
     def initialize(config)
       @config = config
@@ -16,11 +17,7 @@ module IronResponse
     end
 
     def worker_name
-      @worker.split("/").last.split(".rb").first
-    end
-
-    def worker_language
-      is_ruby 
+      @code.name
     end
 
     def run!
@@ -68,44 +65,13 @@ module IronResponse
       IronResponse::Common.handle_response(response, task_id, @client)
     end
 
-    def runtime
-      return "ruby" if @worker.end_with?(".rb")
-      return "node" if @worker.end_with?(".js")
-    end
-
-    def prepare_ruby_code(code)
-      code.runtime = "ruby"
-    end
-
-    def prepare_node_code(code)
-      code.runtime = "node"
-      code.dir     = "node_modules"
-      code.file    = "package.json"
-    end
-
-    def code
-      if @code.nil?
-        @code = IronWorkerNG::Code::Ruby.new(exec: @worker)
-        @code.name = worker_name
-        @code.merge_gem("iron_response", IronResponse::VERSION) # bootstraps the current version with the worker
-
-        case runtime
-        when "ruby"
-          prepare_ruby_code(@code)
-        when "node"
-          prepare_node_code(@code)
-        end
-      end
-
-      @code
-    end
-
-    def patch_code!
-      @client.codes.patch(code)
+    def patch_code!(options={})
+      @client.codes.patch(@code, options)
     end
 
     def create_code!(options={})
-      @client.codes.create(code, options)
+      @code.merge_gem("iron_response", IronResponse::VERSION) if @code.runtime == "ruby" # bootstraps the current version with the worker
+      @client.codes.create(@code, options)
     end
   end
 end

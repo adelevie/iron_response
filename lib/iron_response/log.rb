@@ -1,5 +1,5 @@
 module IronResponse
-  class Error
+  class Log
     def initialize(text)
       @text = text
     end

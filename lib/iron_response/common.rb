@@ -27,8 +27,9 @@ module IronResponse
 
     def Common.handle_response(response, task_id, client)
       if response.nil?
+        p "getting error for Task ID: #{task_id}"
         msg = client.tasks_log(task_id)
-        IronResponse::Error.new("IronWorker error: #{msg}")
+        IronResponse::Log.new("IronWorker logs for task #{task_id}: #{msg}")
       else 
         JSON.parse(response.value)
       end
