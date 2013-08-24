@@ -131,27 +131,27 @@ require_relative "configuration"
 require "iron_response"
 
 config = Configuration.keys
-batch = IronResponse::Batch.new
+batch = IronResponse::Batch.new(config)
 
-batch.auto_update_worker = true
-batch.config             = config
-batch.worker             = "workers/my_worker.rb"
+code = IronWorkerNG::Code::Ruby.new
+code.runtime = "ruby"
+code.exec "workers/my_worker.rb"
+batch.code = code
 
 # The `params_array` is an Array of Hashes 
 # that get sent as the payload to IronWorker scripts.
-batch.params_array       = Array ("a".."z").map {|i| {letter: i}}
+batch.params_array = Array ("a".."z").map {|i| {letter: i}}
 
-results                  = batch.run!
+results = batch.run!
 ```
 
 If your worker code requires any gems, you can use [`iron_worker_ng`](https://github.com/iron-io/iron_worker_ruby_ng)'s API:
 
 ```ruby
-batch.code.merge_gem("nokogiri", "< 1.6.0") # decreases remote build time
-batch.code.merge_gem("ecfs")
-batch.code.full_remote_build(true)
+code.merge_gem("nokogiri", "< 1.6.0") # decreases remote build time
+code.merge_gem("ecfs")
+code.full_remote_build(true)
 ```
-
 
 ## Installation
 
