@@ -31,7 +31,8 @@ module IronResponse
         msg = client.tasks_log(task_id)
         IronResponse::Log.new("IronWorker logs for task #{task_id}: #{msg}")
       else 
-        JSON.parse(response.value)
+        # JSON.parse(response.value)
+        response.value
       end
     end
   end

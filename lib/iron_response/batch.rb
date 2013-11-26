@@ -70,7 +70,7 @@ module IronResponse
     end
 
     def create_code!(options={})
-      @code.merge_gem("iron_response", IronResponse::VERSION) if @code.runtime == "ruby" # bootstraps the current version with the worker
+      @code.merge_gem("iron_response", :git => 'git@github.com:joshmerchant/iron_response.git') if @code.runtime == "ruby" # bootstraps the current version with the worker
       @client.codes.create(@code, options)
     end
   end
