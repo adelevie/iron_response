@@ -1,6 +1,6 @@
 require "test_helper"
 
-class GemDependencyTest < MiniTest::Unit::TestCase
+class GemDependencyTest < Test::Unit::TestCase
   def test_synopsis_with_iron_cache
 
     config = Configuration.keys

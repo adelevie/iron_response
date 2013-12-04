@@ -1,6 +1,6 @@
 require "test_helper"
 
-class SynopsisTest < MiniTest::Unit::TestCase
+class SynopsisTest < Test::Unit::TestCase
   def test_synopsis_with_s3
     config = Configuration.keys
     batch  = IronResponse::Batch.new(config)
