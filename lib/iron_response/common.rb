@@ -10,7 +10,7 @@ module IronResponse
     end
 
     def Common.s3_bucket_name(config)
-      config[:aws_s3][:bucket].nil? ? DEFAULT_S3_BUCKET : @config[:aws_s3][:bucket]
+      config[:aws_s3][:bucket].nil? ? DEFAULT_S3_BUCKET : config[:aws_s3][:bucket]
     end
 
     def Common.iron_cache_key(task_id)
@@ -18,7 +18,7 @@ module IronResponse
     end
 
     def Common.iron_cache_cache_name(config)
-      config[:iron_io][:cache].nil? ? DEFAULT_IRON_CACHE_CACHE_NAME : @config[:iron_io][:cache]
+      config[:iron_io][:cache].nil? ? DEFAULT_IRON_CACHE_CACHE_NAME : config[:iron_io][:cache]
     end
 
     def Common.response_provider(config)
@@ -31,7 +31,6 @@ module IronResponse
         msg = client.tasks_log(task_id)
         IronResponse::Log.new("IronWorker logs for task #{task_id}: #{msg}")
       else 
-        # JSON.parse(response.value)
         response.value
       end
     end
